@@ -13,12 +13,12 @@ jobs:
   test:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
-      - uses: actions/setup-go@v5
+      - uses: actions/setup-go@v6
         with:
           go-version: "1.22"
-          cache: true
+          cache: false
 
       - name: Vet
         run: go vet ./...
@@ -39,12 +39,12 @@ jobs:
           - { goos: windows, goarch: amd64 }
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
-      - uses: actions/setup-go@v5
+      - uses: actions/setup-go@v6
         with:
           go-version: "1.22"
-          cache: true
+          cache: false
 
       - name: Build binary
         env:
@@ -63,7 +63,7 @@ jobs:
           echo "archive=${archive}" >> "$GITHUB_OUTPUT"
         id: build
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v5
         with:
           name: binary-${{ matrix.goos }}-${{ matrix.goarch }}
           path: dist/telegram-ai-bot_*.tar.gz
@@ -76,7 +76,7 @@ jobs:
       packages: write
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Docker meta
         id: meta
@@ -118,16 +118,16 @@ jobs:
       contents: write
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v5
         with:
           path: dist
           pattern: binary-*
           merge-multiple: true
 
       - name: Create GitHub Release
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         with:
           tag_name: ${{ github.ref_name }}
           name: Release ${{ github.ref_name }}
