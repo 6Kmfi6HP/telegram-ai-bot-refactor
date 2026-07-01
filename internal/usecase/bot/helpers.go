@@ -72,9 +72,6 @@ func userDisplayName(user *telegram.User, preferUsernameAt bool) string {
 		return user.FirstName
 	}
 	if user.UserName != "" {
-		if preferUsernameAt {
-			return "@" + user.UserName
-		}
 		return user.UserName
 	}
 	return ""

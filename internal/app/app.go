@@ -57,6 +57,9 @@ func (a *App) Run(ctx context.Context) error {
 		a.logger.Printf("成功设置命令菜单")
 	}
 
+	if a.cfg.WebhookURL == "" {
+		return fmt.Errorf("请通过-webhook参数设置webhook URL")
+	}
 	if err := a.telegram.SetWebhook(ctx, a.cfg.WebhookURL); err != nil {
 		return fmt.Errorf("设置webhook失败: %v", err)
 	}

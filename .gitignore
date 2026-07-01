@@ -1,0 +1,20 @@
+# macOS
+.DS_Store
+
+# Local environment / secrets
+.env
+.env.*
+!.env.example
+
+# Go build and test artifacts
+/bin/
+/build/
+/dist/
+/telegram-ai-bot
+*.test
+*.out
+coverage.*
+*.coverprofile
+
+# Logs
+*.log

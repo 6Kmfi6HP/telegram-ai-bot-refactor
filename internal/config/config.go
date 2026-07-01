@@ -1,9 +1,9 @@
 package config
 
 import (
+	"flag"
 	"fmt"
 	"os"
-	"strconv"
 	"strings"
 	"time"
 )
@@ -18,8 +18,7 @@ const (
 	DefaultIdleTimeout  = 120 * time.Second
 )
 
-// Config contains all runtime configuration. The application loads it from
-// environment variables only.
+// Config contains all runtime configuration loaded from the original CLI flags.
 type Config struct {
 	TelegramToken string
 	WebhookURL    string
@@ -32,67 +31,36 @@ type Config struct {
 	IdleTimeout   time.Duration
 }
 
-// LoadFromEnv reads configuration from environment variables.
+// LoadFromEnv reads configuration from the original CLI flags.
 func LoadFromEnv() (Config, error) {
+	flags := flag.NewFlagSet(os.Args[0], flag.ContinueOnError)
+	token := flags.String("token", "", "Telegram Bot Token")
+	webhook := flags.String("webhook", "", "Webhook URL")
+	port := flags.Int("port", DefaultPort, "webhook服务器端口")
+	apiKey := flags.String("key", DefaultAPIKey, "API密钥")
+	defaultModel := flags.String("model", DefaultModel, "指定默认模型")
+	apiURL := flags.String("url", DefaultAPIURL, "API URL")
+	if err := flags.Parse(os.Args[1:]); err != nil {
+		return Config{}, err
+	}
+
 	cfg := Config{
-		TelegramToken: strings.TrimSpace(os.Getenv("TELEGRAM_BOT_TOKEN")),
-		WebhookURL:    strings.TrimSpace(os.Getenv("TELEGRAM_WEBHOOK_URL")),
-		Port:          envInt("PORT", DefaultPort),
-		APIKey:        envString("AI_API_KEY", DefaultAPIKey),
-		DefaultModel:  envString("AI_MODEL", DefaultModel),
-		APIURL:        envString("AI_API_URL", DefaultAPIURL),
-		ReadTimeout:   envDuration("HTTP_READ_TIMEOUT", DefaultReadTimeout),
-		WriteTimeout:  envDuration("HTTP_WRITE_TIMEOUT", DefaultWriteTimeout),
-		IdleTimeout:   envDuration("HTTP_IDLE_TIMEOUT", DefaultIdleTimeout),
+		TelegramToken: strings.TrimSpace(*token),
+		WebhookURL:    strings.TrimSpace(*webhook),
+		Port:          *port,
+		APIKey:        strings.TrimSpace(*apiKey),
+		DefaultModel:  strings.TrimSpace(*defaultModel),
+		APIURL:        strings.TrimSpace(*apiURL),
+		ReadTimeout:   DefaultReadTimeout,
+		WriteTimeout:  DefaultWriteTimeout,
+		IdleTimeout:   DefaultIdleTimeout,
 	}
 
-	if cfg.TelegramToken == "" {
-		return Config{}, fmt.Errorf("请通过环境变量 TELEGRAM_BOT_TOKEN 设置 Bot Token")
-	}
-	if cfg.WebhookURL == "" {
-		return Config{}, fmt.Errorf("请通过环境变量 TELEGRAM_WEBHOOK_URL 设置 webhook URL")
-	}
 	if cfg.APIKey == "" {
-		return Config{}, fmt.Errorf("请提供 API 密钥：AI_API_KEY")
+		return Config{}, fmt.Errorf("请提供API密钥")
 	}
-	if cfg.DefaultModel == "" {
-		return Config{}, fmt.Errorf("请提供默认模型：AI_MODEL")
+	if cfg.TelegramToken == "" {
+		return Config{}, fmt.Errorf("请通过-token参数设置Bot Token")
 	}
-	if cfg.APIURL == "" {
-		return Config{}, fmt.Errorf("请提供 API URL：AI_API_URL")
-	}
-
 	return cfg, nil
-}
-
-func envString(key string, fallback string) string {
-	value := strings.TrimSpace(os.Getenv(key))
-	if value == "" {
-		return fallback
-	}
-	return value
-}
-
-func envInt(key string, fallback int) int {
-	value := strings.TrimSpace(os.Getenv(key))
-	if value == "" {
-		return fallback
-	}
-	parsed, err := strconv.Atoi(value)
-	if err != nil || parsed <= 0 {
-		return fallback
-	}
-	return parsed
-}
-
-func envDuration(key string, fallback time.Duration) time.Duration {
-	value := strings.TrimSpace(os.Getenv(key))
-	if value == "" {
-		return fallback
-	}
-	parsed, err := time.ParseDuration(value)
-	if err != nil || parsed <= 0 {
-		return fallback
-	}
-	return parsed
 }
