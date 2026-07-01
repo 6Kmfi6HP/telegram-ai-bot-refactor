@@ -1,0 +1,38 @@
+services:
+  bot:
+    image: ${IMAGE:?IMAGE must be set, e.g. ghcr.io/you/telegram-ai-bot:v1.0.0}
+    pull_policy: always
+    container_name: telegram-ai-bot
+    restart: always
+    read_only: true
+    deploy:
+      resources:
+        limits:
+          cpus: "0.5"
+          memory: 128M
+    ports:
+      - "${HOST_PORT:-8080}:8080"
+    environment:
+      - PORT=8080
+    command:
+      - "-token"
+      - "${TELEGRAM_BOT_TOKEN:?TELEGRAM_BOT_TOKEN required}"
+      - "-webhook"
+      - "${WEBHOOK_URL:?WEBHOOK_URL required}"
+      - "-key"
+      - "${API_KEY:?API_KEY required}"
+      - "-url"
+      - "${API_URL:-http://host.docker.internal:12345/v1}"
+      - "-model"
+      - "${MODEL:-smart}"
+      - "-port"
+      - "8080"
+    tmpfs:
+      - /tmp
+    security_opt:
+      - no-new-privileges:true
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "5"
